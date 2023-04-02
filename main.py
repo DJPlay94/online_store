@@ -130,6 +130,12 @@ def register():
         row = db.users.get('login', request.form['login'])
         if row:
             return render_template('register.html', message='Такой пользователь уже существует!')
+        row_1 = db.users.get('phone_number', request.form['login'])
+        if row_1:
+            return render_template('register.html', message='Такой номер телефона уже есть!')
+        row_2 = db.users.get('email', request.form['login'])
+        if row_2:
+            return render_template('register.html', message='Такая электронная почта уже есть!')
             
         if request.form['password'] != request.form['password_check']:
             return render_template('register.html', message='Пароли не совпадают')
