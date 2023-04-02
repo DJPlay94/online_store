@@ -25,9 +25,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(login):
-    if login == 'admin':
-        return User(login)
-
+    return User(login)
 
 @app.route('/')
 @login_required
@@ -108,10 +106,12 @@ def order_list():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    login = 'admin'
-    password = 'admin'
     if request.method == 'POST':
-        if request.form['login'] == login and request.form['password'] == password:
+        row = db.users.get('login', request.form['login'])
+        if not row:
+            return render_template('login.html', error='Неправильный логин или пароль')
+
+        if request.form['password'] == row.password:
             user = User(login)  # Создаем пользователя
             login_user(user)  # Логинем пользователя
             return redirect(url_for('index'))
@@ -126,6 +126,11 @@ def register():
         for key in request.form:
             if request.form[key] == '':
                 return render_template('register.html', message='Все поля должны быть заполнены!')
+
+        row = db.users.get('login', request.form['login'])
+        if row:
+            return render_template('register.html', message='Такой пользователь уже существует!')
+            
         if request.form['password'] != request.form['password_check']:
             return render_template('register.html', message='Пароли не совпадают')
         data = dict(request.form)
